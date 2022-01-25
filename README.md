@@ -16,7 +16,7 @@ pip install --upgrade django-gmailapi-json-backend
 ## Configuration
 In your `settings.py`:
 1. Add the module into the INSTALLED_APPS
-    ```
+    ```py
     INSTALLED_APPS = [
         ...
         'django-gmailapi-json-backend',
@@ -24,7 +24,7 @@ In your `settings.py`:
     ]
     ```
 2. Set the email backend
-    ```
+    ```py
    EMAIL_FROM = 'your-email@domain.com'
    EMAIL_BACKEND = "gmailapi_backend.service.GmailApiBackend"
    GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.send']
@@ -36,7 +36,7 @@ In your `settings.py`:
    }'
     ```
    If you use *django-mailer* as email backend you can send through gmail API as follow:
-    ```
+    ```py
    EMAIL_BACKEND = "mailer.backend.DbBackend"
    MAILER_EMAIL_BACKEND = "gmailapi_backend.service.GmailApiBackend"
     ```
@@ -52,13 +52,13 @@ In your `settings.py`:
 
 ## Usage
 Use the native `EmailMessage` class in Django. Just a sample:
-```
+```py
 message = render_to_string('email/ordine_pagato.html', {
   'ordine': ordine,
 })
 mail_subject = _('This is just a sample')
 email = EmailMessage(
-  mail_subject, message, settings.EMAIL_FROM, to=[settings.EMAIL_CONTACT], reply_to=[settings.EMAIL_NO_REPLY]
+  mail_subject, message, settings.EMAIL_FROM, to=['recipient@domain.com']
 )
 email.content_subtype = "html"
 email.attach(sample_file.file.name, sample_file.file.read(), 'application/pdf')

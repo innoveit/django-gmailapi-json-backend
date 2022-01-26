@@ -45,7 +45,7 @@ class GmailApiBackend(EmailBackend):
 
     def _send(self, email_message):
         try:
-            self.connection.users().messages().send(userId='me', body=email_message).execute()
+            self.connection.users().messages().send(userId=email_message.from_email, body=email_message).execute()
         except Exception as error:
             logger.error('Error sending email', error)
             if settings.EMAIL_BACKEND and settings.EMAIL_BACKEND == "mailer.backend.DbBackend":

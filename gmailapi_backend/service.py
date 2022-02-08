@@ -45,7 +45,7 @@ class GmailApiBackend(EmailBackend):
 
     def _send(self, email_message):
         try:
-            self.connection.users().messages().send(userId=settings.EMAIL_FROM, body=email_message).execute()
+            self.connection.users().messages().send(userId=settings.GMAIL_USER, body=email_message).execute()
         except Exception as error:
             logger.error('Error sending email', error)
             if settings.EMAIL_BACKEND and settings.EMAIL_BACKEND == "mailer.backend.DbBackend":
@@ -59,7 +59,7 @@ class GmailApiBackend(EmailBackend):
 
 def get_credentials():
     credentials = service_account.Credentials.from_service_account_info(
-        json.loads(settings.GOOGLE_SERVICE_ACCOUNT), scopes=settings.GMAIL_SCOPES, subject=settings.EMAIL_USER)
+        json.loads(settings.GOOGLE_SERVICE_ACCOUNT), scopes=settings.GMAIL_SCOPES, subject=settings.GMAIL_USER)
     return credentials
 
 

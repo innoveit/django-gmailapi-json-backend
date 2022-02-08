@@ -26,7 +26,7 @@ In your `settings.py`:
 2. Set the email backend
     ```py
    EMAIL_FROM = 'Company<your-email@domain.com>'
-   EMAIL_USER = 'your-email@domain.com'
+   GMAIL_USER = 'your-email@domain.com'
    EMAIL_BACKEND = "gmailapi_backend.service.GmailApiBackend"
    GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.send']
    GOOGLE_SERVICE_ACCOUNT = '{

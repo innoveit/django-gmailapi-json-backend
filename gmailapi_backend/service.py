@@ -59,7 +59,7 @@ class GmailApiBackend(EmailBackend):
 
 def get_credentials():
     credentials = service_account.Credentials.from_service_account_info(
-        json.loads(settings.GOOGLE_SERVICE_ACCOUNT), scopes=settings.GMAIL_SCOPES, subject=settings.EMAIL_FROM)
+        json.loads(settings.GOOGLE_SERVICE_ACCOUNT), scopes=settings.GMAIL_SCOPES, subject=settings.EMAIL_USER)
     return credentials
 
 

@@ -1,4 +1,9 @@
 # django-gmailapi-json-backend
+[![PyPI version](https://badge.fury.io/py/django-gmailapi-json-backend.svg)](https://badge.fury.io/py/django-gmailapi-json-backend)
+[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-310)
+
+
 Email backend for Django which sends email via the Gmail API through a JSON credential
 
 The simple SMTP protocol is disabled by default for Gmail users, since this is included in the Less Secure Apps (LSA) category.

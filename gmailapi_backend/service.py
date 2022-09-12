@@ -38,6 +38,12 @@ class GmailApiBackend(EmailBackend):
 
         self.connection = build('gmail', 'v1', cache_discovery=False, credentials=credentials)
 
+    def open(self):
+        pass
+
+    def close(self):
+        pass
+
     def send_messages(self, email_messages):
         new_conn_created = self.open()
         if not self.connection or new_conn_created is None:

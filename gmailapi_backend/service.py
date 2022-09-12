@@ -30,8 +30,8 @@ class GmailApiBackend(EmailBackend):
         super().__init__(fail_silently=fail_silently)
 
         self.google_service_account = settings.GOOGLE_SERVICE_ACCOUNT if google_service_account is None else google_service_account
-        self.gmail_scopes = settings.GMAIL_SCOPES if gmail_scopes is None else gmail_scopes
-        self.gmail_user = settings.GMAIL_USER if gmail_user is None else gmail_user
+        self.gmail_scopes = gmail_scopes if gmail_scopes else (settings.GMAIL_SCOPES if settings.GMAIL_SCOPES else 'https://www.googleapis.com/auth/gmail.send')
+        self.gmail_user = settings.GMAIL_USER if gmail_user is None else gmail_user        
 
         credentials = service_account.Credentials.from_service_account_info(json.loads(
             self.google_service_account), scopes=self.gmail_scopes, subject=self.gmail_user)
@@ -44,18 +44,13 @@ class GmailApiBackend(EmailBackend):
     def close(self):
         pass
 
-    def send_messages(self, email_messages):
-        new_conn_created = self.open()
-        if not self.connection or new_conn_created is None:
-            return 0
+    def send_messages(self, email_messages):        
         num_sent = 0
         for email_message in email_messages:
             message = create_message(email_message)
             sent = self._send(message)
             if sent:
-                num_sent += 1
-        if new_conn_created:
-            self.close()
+                num_sent += 1        
 
         return num_sent
 

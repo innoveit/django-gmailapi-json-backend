@@ -24,7 +24,7 @@ In your `settings.py`:
     ```py
     INSTALLED_APPS = [
         ...
-        'django-gmailapi-json-backend',
+        'gmailapi_backend',
         ...
     ]
     ```

@@ -96,6 +96,7 @@ target/
 *.log
 *.pot
 *.pyc
+*.pypirc
 __pycache__/
 local_settings.py
 

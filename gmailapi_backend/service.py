@@ -28,21 +28,35 @@ class GmailApiBackend(EmailBackend):
             **kwargs
     ):
         super().__init__(fail_silently=fail_silently)
-
+        
         self.google_service_account = settings.GOOGLE_SERVICE_ACCOUNT if google_service_account is None else google_service_account
         self.gmail_scopes = gmail_scopes if gmail_scopes else (settings.GMAIL_SCOPES if settings.GMAIL_SCOPES else 'https://www.googleapis.com/auth/gmail.send')
-        self.gmail_user = settings.GMAIL_USER if gmail_user is None else gmail_user        
-
-        credentials = service_account.Credentials.from_service_account_info(json.loads(
-            self.google_service_account), scopes=self.gmail_scopes, subject=self.gmail_user)
-
-        self.connection = build('gmail', 'v1', cache_discovery=False, credentials=credentials)
+        self.gmail_user = settings.GMAIL_USER if gmail_user is None else gmail_user
+        self.connection = None
+        self.open()
 
     def open(self):
-        pass
-
+        if self.connection: return False
+        try:
+            credentials = service_account.Credentials.from_service_account_info(json.loads(
+                self.google_service_account), scopes=self.gmail_scopes, subject=self.gmail_user)
+            self.connection = build('gmail', 'v1', cache_discovery=False, credentials=credentials)
+            return True
+        except:
+            if not self.fail_silently:
+                self.close()
+                raise
+    
     def close(self):
-        pass
+        if self.connection is None: return
+        try:
+            self.connection.close()
+            self.connection = None
+        except:
+            self.connection = None
+            if self.fail_silently:
+                return
+            raise
 
     def send_messages(self, email_messages):        
         num_sent = 0
@@ -64,7 +78,9 @@ class GmailApiBackend(EmailBackend):
                 # deferred only for some exceptions, so we raise one of them to save the error on the db
                 raise socket.error(error)
             else:
-                raise
+                if not self.fail_silently:
+                    raise
+                return False
         return True
 
 
@@ -87,30 +103,24 @@ def create_message(email_message):
 
     if email_message.attachments:
         for attachment in email_message.attachments:
-            content_type, encoding = mimetypes.guess_type(attachment[0])
-            if content_type is None or encoding is not None:
-                content_type = 'application/octet-stream'
+            if isinstance(attachment, MIMEBase):
+                message.attach(attachment)
+                continue
+            if bool(attachment[2]): content_type = attachment[2]
+            else:
+                content_type, encoding = mimetypes.guess_type(attachment[0])
+                if content_type is None or encoding is not None:
+                    content_type = 'application/octet-stream'
             main_type, sub_type = content_type.split('/', 1)
             if main_type == 'text':
-                fp = open(attachment[1], 'rb')
-                msg = MIMEText(fp.read(), _subtype=sub_type)
-                fp.close()
+                msg = MIMEText(attachment[1], _subtype=sub_type)
             elif main_type == 'image':
-                fp = open(attachment[1], 'rb')
-                msg = MIMEImage(fp.read(), _subtype=sub_type)
-                fp.close()
+                msg = MIMEImage(attachment[1], _subtype=sub_type)
             elif main_type == 'audio':
-                fp = open(attachment[1], 'rb')
-                msg = MIMEAudio(fp.read(), _subtype=sub_type)
-                fp.close()
-            elif type(attachment[1]) is bytes:
+                msg = MIMEAudio(attachment[1], _subtype=sub_type)
+            else:
                 msg = MIMEBase(main_type, sub_type)
                 msg.set_payload(attachment[1])
-            else:
-                fp = open(attachment[1], 'rb')
-                msg = MIMEBase(main_type, sub_type)
-                msg.set_payload(fp.read())
-                fp.close()
 
             filename = attachment[0]
 

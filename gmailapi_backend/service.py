@@ -44,7 +44,6 @@ class GmailApiBackend(EmailBackend):
             return True
         except:
             if not self.fail_silently:
-                self.close()
                 raise
     
     def close(self):
@@ -59,6 +58,9 @@ class GmailApiBackend(EmailBackend):
             raise
 
     def send_messages(self, email_messages):        
+        new_conn_created = self.open()
+        if not self.connection or new_conn_created is None:
+            return 0
         num_sent = 0
         for email_message in email_messages:
             message = create_message(email_message)

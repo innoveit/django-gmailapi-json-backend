@@ -1,18 +1,9 @@
 import base64
 import json
 import logging
-import mimetypes
-import email.encoders as encoder
 import socket
-from email.mime.audio import MIMEAudio
-from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 from django.conf import settings
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 from django.core.mail.backends.smtp import EmailBackend
 
 logger = logging.getLogger(__name__)
@@ -38,6 +29,11 @@ class GmailApiBackend(EmailBackend):
     def open(self):
         if self.connection: return False
         try:
+            # Lazy imports so library users can import this module (and unit-test create_message)
+            # without needing Google client dependencies unless actually opening a Gmail connection.
+            from google.oauth2 import service_account
+            from googleapiclient.discovery import build
+
             credentials = service_account.Credentials.from_service_account_info(json.loads(
                 self.google_service_account), scopes=self.gmail_scopes, subject=self.gmail_user)
             self.connection = build('gmail', 'v1', cache_discovery=False, credentials=credentials)
@@ -87,48 +83,13 @@ class GmailApiBackend(EmailBackend):
 
 
 def create_message(email_message):
-    if email_message.attachments:
-        message = MIMEMultipart()
-        msg = MIMEText(email_message.body, email_message.content_subtype)
-        message.attach(msg)
-    else:
-        message = MIMEText(email_message.body, email_message.content_subtype)
-    message['to'] = ','.join(map(str, email_message.to))
-    message['from'] = email_message.from_email
-    if email_message.reply_to:
-        message['reply-to'] = ','.join(map(str, email_message.reply_to))
-    if email_message.cc:
-        message['cc'] = ','.join(map(str, email_message.cc))
-    if email_message.bcc:
-        message['bcc'] = ','.join(map(str, email_message.bcc))
-    message['subject'] = str(email_message.subject)
-
-    if email_message.attachments:
-        for attachment in email_message.attachments:
-            if isinstance(attachment, MIMEBase):
-                message.attach(attachment)
-                continue
-            if bool(attachment[2]): content_type = attachment[2]
-            else:
-                content_type, encoding = mimetypes.guess_type(attachment[0])
-                if content_type is None or encoding is not None:
-                    content_type = 'application/octet-stream'
-            main_type, sub_type = content_type.split('/', 1)
-            if main_type == 'text':
-                msg = MIMEText(attachment[1], _subtype=sub_type)
-            elif main_type == 'image':
-                msg = MIMEImage(attachment[1], _subtype=sub_type)
-            elif main_type == 'audio':
-                msg = MIMEAudio(attachment[1], _subtype=sub_type)
-            else:
-                msg = MIMEBase(main_type, sub_type)
-                msg.set_payload(attachment[1])
-
-            filename = attachment[0]
-
-            msg.add_header('Content-Disposition', 'attachment', filename=filename)
-            encoder.encode_base64(msg)
-            message.attach(msg)
+    # Let Django build the RFC822/MIME message. This preserves multipart/alternative
+    # (EmailMultiAlternatives), correct headers encoding, and attachment handling.
+    message = email_message.message()
+    # Django's SMTP backend uses the envelope to deliver BCC recipients without adding a header.
+    # Gmail API doesn't have an envelope; recipients must be present in the raw message headers.
+    if getattr(email_message, "bcc", None) and "Bcc" not in message:
+        message["Bcc"] = ",".join(map(str, email_message.bcc))
 
     b64_bytes = base64.urlsafe_b64encode(message.as_bytes())
     b64_string = b64_bytes.decode()

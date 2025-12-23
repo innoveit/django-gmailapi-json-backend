@@ -1,7 +1,6 @@
 # django-gmailapi-json-backend
 [![PyPI version](https://badge.fury.io/py/django-gmailapi-json-backend.svg)](https://badge.fury.io/py/django-gmailapi-json-backend)
-[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390)
-[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-310)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
 
 
 Email backend for Django which sends email via the Gmail API through a JSON credential
@@ -10,7 +9,7 @@ The simple SMTP protocol is disabled by default for Gmail users, since this is i
 This package implements the Gmail API directly with a JSON Google service account as a Django email backend and can be used with 'django-mailer'.
 
 ## Requirements
-Python 3.9+
+Python 3.12+
 
 ## Installation
 The package is available through pip. To easily install or upgrade it, do

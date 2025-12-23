@@ -6,12 +6,13 @@ name = "pypi"
 [packages]
 build = "*"
 twine = "*"
-google-api-python-client = "*"
-google-auth-httplib2 = "*"
-google-auth-oauthlib = "*"
+django = ">=4.2"
+google-api-python-client = ">=2.0"
+google-auth-httplib2 = ">=0.2"
+google-auth-oauthlib = ">=1.2"
 
 [dev-packages]
 pytest = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.12"
